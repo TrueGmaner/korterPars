@@ -113,11 +113,6 @@ for i in range(2):
                     print(f'soldComplexesNum = {soldComplexesNum}')
                     w_Sheet.write(row, 12, soldComplexesNum)
                     break
-            # if zastroychikData[3].text.find("продано") != -1:
-            #     print(f'zastroychikData[3].text={zastroychikData[3].text}')
-            #     soldComplexesNum = zastroychikData[3].text.split()[0]
-            #     print(f'soldComplexesNum = {soldComplexesNum}')
-            #     w_Sheet.write(row, 12, soldComplexesNum)
             driver.close()
             driver.switch_to.window(tabs[1])
 
