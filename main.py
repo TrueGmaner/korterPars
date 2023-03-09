@@ -1,5 +1,4 @@
-import time
-
+import xlwt
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 import xlrd
@@ -39,14 +38,16 @@ for i in range(2):
         #запарсил квартиру
         try:
             price = driver.find_element('xpath', '//*[@class="s13pwi49"]/div[2]').text
-            price = price[price.find('$')+1:]
+            price = price[price.find('$')+1:].replace(' ', '')
+            print(f'price = {price}')
             w_Sheet.write(row, 1, price)
         except Exception as e:
             print(e)
             pass
         try:
-            priceSquare = driver.find_element('xpath', '//*[@class="s14nhvp tkwot82"]').text
-            priceSquare = priceSquare[priceSquare.find('$') + 1:]
+            priceSquare = driver.find_element('xpath', '//*[@class="s2vmdip s13pwi49"]/div[2]').text
+            priceSquare = priceSquare[priceSquare.find('$') + 1:].replace(' ', '')
+            print(f'priceSquare = {priceSquare}')
             w_Sheet.write(row, 2, priceSquare)
         except:
             pass
@@ -73,19 +74,28 @@ for i in range(2):
                     print(f'otdelka = {otdelka}')
                     w_Sheet.write(row, 6, otdelka)
                 if q.text.find('Жилой комплекс') != -1:
+                    complexName = q.find_element('xpath', 'div[3]/a').text
+                    print(f'complexName = {complexName}')
                     hrefComplex = q.find_element('xpath', 'div[3]/a').get_attribute('href')
                     print(f'hrefComplex = {hrefComplex}')
-                    w_Sheet.write(row, 7, hrefComplex)
+                    w_Sheet.write(row, 7, xlwt.Formula(f'HYPERLINK("{hrefComplex}"; "{complexName}")'))
                 if q.text.find('Застройщик') != -1:
+                    zastroychikName = q.find_element('xpath', 'div[3]/a').text
+                    print(f'zastroychikName = {zastroychikName}')
                     hrefZastroychik = q.find_element('xpath', 'div[3]/a').get_attribute('href')
                     print(f'hrefзастройщик = {hrefZastroychik}')
-                    w_Sheet.write(row, 8, hrefZastroychik)
+                    w_Sheet.write(row, 8, xlwt.Formula(f'HYPERLINK("{hrefZastroychik}"; "{zastroychikName}")'))
                 if (q.text.find('Актуально') != -1) | (q.text.find('Опубликовано') != -1):
                     actualnoNa = q.find_element('xpath', 'div[3]').text
                     print(f'actualnoNa = {actualnoNa}')
                     w_Sheet.write(row, 9, actualnoNa)
-        except:
-            pass
+                if q.text.find('Год постройки') != -1:
+                    yearOfBuilding = q.find_element('xpath', 'div[3]').text
+                    print(f'yearOfBuilding = {yearOfBuilding}')
+                    w_Sheet.write(row, 10, yearOfBuilding)
+
+        except Exception as e:
+            print(e)
         if hrefComplex is not None:
             driver.execute_script("window.open('');")
             tabs = driver.window_handles
@@ -95,9 +105,9 @@ for i in range(2):
             startBuildingDate = buildingDates[0].text
             endBuildingDate = buildingDates[1].text
             print(f'startBuildingDate = {startBuildingDate}')
-            w_Sheet.write(row, 10, startBuildingDate)
+            w_Sheet.write(row, 11, startBuildingDate)
             print(f'endBuildingDate = {endBuildingDate}')
-            w_Sheet.write(row, 11, endBuildingDate)
+            w_Sheet.write(row, 12, endBuildingDate)
             driver.close()
             driver.switch_to.window(tabs[1])
         if hrefZastroychik is not None:
@@ -106,17 +116,19 @@ for i in range(2):
             driver.switch_to.window(tabs[2])
             driver.get(hrefZastroychik)
             zastroychikData = driver.find_elements('xpath', '//*[@class="secfd27"]')
+            soldComplexesNum = 0
             for i in zastroychikData:
                 if i.text.find("продано") != -1:
                     print(f'i.text={i.text}')
                     soldComplexesNum = i.text.split()[0]
-                    print(f'soldComplexesNum = {soldComplexesNum}')
-                    w_Sheet.write(row, 12, soldComplexesNum)
                     break
+            print(f'soldComplexesNum = {soldComplexesNum}')
+            w_Sheet.write(row, 13, soldComplexesNum)
+
             driver.close()
             driver.switch_to.window(tabs[1])
 
-
+        w_Book.save(file_parsed_data)
         driver.close()
         driver.switch_to.window(tabs[0])
         row += 1
