@@ -22,7 +22,7 @@ driver.get(page_url)
 pagesAmount = int(driver.find_element('xpath', '//*[@id="app"]/div[2]/div[1]/div[1]/div[4]/div[1]/div[2]/ul/li[6]/a').text)
 print(f'pagesAmount = {pagesAmount}')
 row = 1
-for i in range(2):
+for i in range(pagesAmount):
     i += 1
     driver.get(page_url+str(i))
     print(f'PAGE NUMBER {i} OPENED')
@@ -128,7 +128,6 @@ for i in range(2):
             driver.close()
             driver.switch_to.window(tabs[1])
 
-        w_Book.save(file_parsed_data)
         driver.close()
         driver.switch_to.window(tabs[0])
         row += 1
