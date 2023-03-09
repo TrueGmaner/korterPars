@@ -23,11 +23,13 @@ driver.get(page_url)
 pagesAmount = int(driver.find_element('xpath', '//*[@id="app"]/div[2]/div[1]/div[1]/div[4]/div[1]/div[2]/ul/li[6]/a').text)
 print(f'pagesAmount = {pagesAmount}')
 row = 1
-for i in range(1):
+for i in range(2):
     i += 1
     driver.get(page_url+str(i))
+    print(f'PAGE NUMBER {i} OPENED')
     for a in driver.find_elements('xpath', '//*[@class="sc-1yrzfvb-1 jsQUmP"]/a'):
         hrefComplex = None
+        hrefZastroychik = None
         href = a.get_attribute('href')
         w_Sheet.write(row, 0, href)
         driver.execute_script("window.open('');")
@@ -69,15 +71,19 @@ for i in range(1):
                 if q.text.find('Отделка') != -1:
                     otdelka = q.text[q.text.find('Отделка')+8:]
                     print(f'otdelka = {otdelka}')
+                    w_Sheet.write(row, 6, otdelka)
                 if q.text.find('Жилой комплекс') != -1:
                     hrefComplex = q.find_element('xpath', 'div[3]/a').get_attribute('href')
                     print(f'hrefComplex = {hrefComplex}')
+                    w_Sheet.write(row, 7, hrefComplex)
                 if q.text.find('Застройщик') != -1:
                     hrefZastroychik = q.find_element('xpath', 'div[3]/a').get_attribute('href')
                     print(f'hrefзастройщик = {hrefZastroychik}')
+                    w_Sheet.write(row, 8, hrefZastroychik)
                 if (q.text.find('Актуально') != -1) | (q.text.find('Опубликовано') != -1):
                     actualnoNa = q.find_element('xpath', 'div[3]').text
                     print(f'actualnoNa = {actualnoNa}')
+                    w_Sheet.write(row, 9, actualnoNa)
         except:
             pass
         if hrefComplex is not None:
@@ -85,8 +91,35 @@ for i in range(1):
             tabs = driver.window_handles
             driver.switch_to.window(tabs[2])
             driver.get(hrefComplex)
-
-
+            buildingDates = driver.find_elements('xpath', '//*[@class="s3r6gfz"]')
+            startBuildingDate = buildingDates[0].text
+            endBuildingDate = buildingDates[1].text
+            print(f'startBuildingDate = {startBuildingDate}')
+            w_Sheet.write(row, 10, startBuildingDate)
+            print(f'endBuildingDate = {endBuildingDate}')
+            w_Sheet.write(row, 11, endBuildingDate)
+            driver.close()
+            driver.switch_to.window(tabs[1])
+        if hrefZastroychik is not None:
+            driver.execute_script("window.open('');")
+            tabs = driver.window_handles
+            driver.switch_to.window(tabs[2])
+            driver.get(hrefZastroychik)
+            zastroychikData = driver.find_elements('xpath', '//*[@class="secfd27"]')
+            for i in zastroychikData:
+                if i.text.find("продано") != -1:
+                    print(f'i.text={i.text}')
+                    soldComplexesNum = i.text.split()[0]
+                    print(f'soldComplexesNum = {soldComplexesNum}')
+                    w_Sheet.write(row, 12, soldComplexesNum)
+                    break
+            # if zastroychikData[3].text.find("продано") != -1:
+            #     print(f'zastroychikData[3].text={zastroychikData[3].text}')
+            #     soldComplexesNum = zastroychikData[3].text.split()[0]
+            #     print(f'soldComplexesNum = {soldComplexesNum}')
+            #     w_Sheet.write(row, 12, soldComplexesNum)
+            driver.close()
+            driver.switch_to.window(tabs[1])
 
 
         driver.close()
