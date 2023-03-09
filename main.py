@@ -23,10 +23,11 @@ driver.get(page_url)
 pagesAmount = int(driver.find_element('xpath', '//*[@id="app"]/div[2]/div[1]/div[1]/div[4]/div[1]/div[2]/ul/li[6]/a').text)
 print(f'pagesAmount = {pagesAmount}')
 row = 1
-for i in range(2):
+for i in range(1):
     i += 1
     driver.get(page_url+str(i))
     for a in driver.find_elements('xpath', '//*[@class="sc-1yrzfvb-1 jsQUmP"]/a'):
+        hrefComplex = None
         href = a.get_attribute('href')
         w_Sheet.write(row, 0, href)
         driver.execute_script("window.open('');")
@@ -35,45 +36,58 @@ for i in range(2):
         driver.get(href)
         #запарсил квартиру
         try:
-            price = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[1]/div/div[1]/div[2]').text
+            price = driver.find_element('xpath', '//*[@class="s13pwi49"]/div[2]').text
+            price = price[price.find('$')+1:]
             w_Sheet.write(row, 1, price)
-        except:
+        except Exception as e:
+            print(e)
             pass
         try:
-            priceSquare = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[1]/div/div[2]/div[2]').text
+            priceSquare = driver.find_element('xpath', '//*[@class="s14nhvp tkwot82"]').text
+            priceSquare = priceSquare[priceSquare.find('$') + 1:]
             w_Sheet.write(row, 2, priceSquare)
         except:
             pass
         try:
-            rooms = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[2]/div[1]/div[1]').text
-            w_Sheet.write(row, 3, rooms)
+            for q in driver.find_elements('xpath', '//*[@class="s196eif3"]'):
+                if q.text.find('комнат') != -1:
+                    print(f'typeRooms = {q.text}')
+                    w_Sheet.write(row, 3, q.text)
+                if q.text.find('м2') != -1:
+                    print(f'square = {q.text[:q.text.find("м2")+1]}')
+                    w_Sheet.write(row, 4, q.text)
         except:
             pass
         try:
-            beds = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[3]/div[1]/div[2]/div[3]').text
-            w_Sheet.write(row, 4, beds)
+            address = driver.find_element('xpath', '//*[@class="s6bhjrs h1ydktpf h1nz1t7j"]').text
+            print(f'adress ={address}')
+            w_Sheet.write(row, 5, address)
         except:
             pass
         try:
-            floor = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[2]/div[3]/div[1]').text
-            w_Sheet.write(row, 5, floor)
+            for q in driver.find_elements('xpath', '//*[@class="syantbu"]'):
+                if q.text.find('Отделка') != -1:
+                    otdelka = q.text[q.text.find('Отделка')+8:]
+                    print(f'otdelka = {otdelka}')
+                if q.text.find('Жилой комплекс') != -1:
+                    hrefComplex = q.find_element('xpath', 'div[3]/a').get_attribute('href')
+                    print(f'hrefComplex = {hrefComplex}')
+                if q.text.find('Застройщик') != -1:
+                    hrefZastroychik = q.find_element('xpath', 'div[3]/a').get_attribute('href')
+                    print(f'hrefзастройщик = {hrefZastroychik}')
+                if (q.text.find('Актуально') != -1) | (q.text.find('Опубликовано') != -1):
+                    actualnoNa = q.find_element('xpath', 'div[3]').text
+                    print(f'actualnoNa = {actualnoNa}')
         except:
             pass
-        try:
-            type = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[3]/div[1]/div[1]/div[3]').text
-            w_Sheet.write(row, 6, type)
-        except:
-            pass
-        try:
-            kitchenSquare = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[3]/div[1]/div[5]/div[3]').text
-            w_Sheet.write(row, 7, kitchenSquare)
-        except:
-            pass
-        try:
-            buildingYear = driver.find_element('xpath', '//*[@id="app"]/div[2]/div/div[2]/div/div[1]/div/div[3]/div[3]/div[3]/div[3]').text
-            w_Sheet.write(row, 8, buildingYear)
-        except:
-            pass
+        if hrefComplex is not None:
+            driver.execute_script("window.open('');")
+            tabs = driver.window_handles
+            driver.switch_to.window(tabs[2])
+            driver.get(hrefComplex)
+
+
+
 
         driver.close()
         driver.switch_to.window(tabs[0])
